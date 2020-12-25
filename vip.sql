@@ -1,19 +1,3 @@
-/*
- Navicat Premium Data Transfer
-
- Source Server         : retakes
- Source Server Type    : MySQL
- Source Server Version : 50649
- Source Host           : 106.15.91.54:3306
- Source Schema         : vip
-
- Target Server Type    : MySQL
- Target Server Version : 50649
- File Encoding         : 65001
-
- Date: 18/10/2020 23:11:06
-*/
-
 SET NAMES utf8mb4;
 SET FOREIGN_KEY_CHECKS = 0;
 
