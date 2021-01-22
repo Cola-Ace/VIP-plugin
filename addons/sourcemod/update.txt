@@ -16,5 +16,6 @@
 		"Plugin"	"Path_SM/plugins/vip_damageprint.smx"
 		"Plugin"	"Path_SM/plugins/vip_levelicon.smx"
 		"Plugin"	"Path_SM/plugins/vip_profilelimiter.smx"
+		"Plugin"	"Path_SM/plugins/vip_autoupdate.smx"
 	}
 }
