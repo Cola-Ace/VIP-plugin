@@ -5,11 +5,7 @@
 #include <colorvariables>
 #include <vip>
 #include <restorecvars>
-#include <base64>
-#tryinclude <SteamWorks>
-#tryinclude <eItems>
-#tryinclude <csgo_weaponstickers>
-#tryinclude <PTaH>
+#include <sdkhooks>
 
 enum Color {
 	Color_ChatTag = 0,
@@ -31,20 +27,14 @@ ConVar gc_ChatColor;
 ConVar gc_NameColor;
 ConVar gc_JoinMsg;
 ConVar gc_VIPClanTag;
-ConVar gc_DisabledSticker;
-ConVar gc_DamagePrint;
-ConVar gc_DisconnectMsg;
 ConVar gc_PreFix;
-//ConVar gc_Prime;
-//ConVar gc_GameTime;
-//ConVar gc_EnableGameTime;
 
 bool g_IsVIP[MAXPLAYERS + 1];
 bool g_Change[MAXPLAYERS + 1];
 bool g_ClanTag[MAXPLAYERS + 1];
 bool g_ChatTag[MAXPLAYERS + 1];
 bool g_JoinMsg[MAXPLAYERS + 1];
-bool g_DamagePrint[MAXPLAYERS + 1];
+bool g_LevelIcon[MAXPLAYERS + 1];
 
 int g_LeftDays[MAXPLAYERS + 1] = 0;
 
@@ -52,14 +42,13 @@ char g_Color[MAXPLAYERS + 1][Color][64];
 char g_VIP[MAXPLAYERS + 1][Type][64];
 
 #include "vip/natives.sp"
-#include "vip/util.sp"
 
 public Plugin myinfo = {
-	name = "VIP System",
+	name = "VIP System - Main",
 	author = "Xc_ace",
 	description = "VIP System",
-	version = "1.4",
-	url = "https://cncsgo.com.cn"
+	version = PLUGIN_VERSION,
+	url = "https://github.com/Cola-Ace/VIP-Plugin"
 }
 
 public void OnPluginStart(){
@@ -71,14 +60,8 @@ public void OnPluginStart(){
 	gc_ChatColor = CreateConVar("sm_vip_chat_color", "1", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
 	gc_NameColor = CreateConVar("sm_vip_name_color", "1", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
 	gc_JoinMsg = CreateConVar("sm_vip_join_msg", "1", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
-	gc_DisabledSticker = CreateConVar("sm_vip_disable_sticker", "0", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
-	gc_DamagePrint = CreateConVar("sm_vip_damage_print", "0", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
-	gc_DisconnectMsg = CreateConVar("sm_vip_disconnect_msg", "1", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
 	gc_PreFix = CreateConVar("sm_vip_prefix", "[{green}VIP{normal}]", "Message Prefix");
-	//gc_Prime = CreateConVar("sm_vip_prime_only", "0", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
-	//gc_EnableGameTime = CreateConVar("sm_vip_enable_gametime", "0", "0 - disabled , 1 - enable", _, true, 0.0, true, 1.0);
-	//gc_GameTime = CreateConVar("sm_vip_gametime", "30", "Only players who have reached the length of time are allowed to enter");
-	AutoExecConfig(false, "vip");
+	AutoExecConfig(true, "vip");
 	
 	char szError[512];
 	g_Database = SQL_Connect("vip", true, szError, sizeof(szError));
@@ -91,54 +74,8 @@ public void OnPluginStart(){
 	AddCommandListener(Command_Say, "say");
 	AddCommandListener(Command_Say, "say2");
 	AddCommandListener(Command_Say, "say_team");
-	AddCommandListener(Command_Buy, "buy");
 	ExecuteAndSaveCvars("sourcemod/vip.cfg");
 	HookEvent("player_spawn", Hook_PlayerSpawn);
-	HookEvent("player_hurt", Hook_PlayerHurt);
-	
-	KeyValues kv = new KeyValues("VIP");
-	char Path[PLATFORM_MAX_PATH];
-	BuildPath(Path_SM, Path, sizeof(Path), "configs/vip_command.cfg");
-	kv.ImportFromFile(Path);
-	if (kv.GotoFirstSubKey()){
-		char command[64];
-		do {
-			kv.GetString("command", command, sizeof(command));
-			AddCommandListener(Command_Sticker, command);
-		} while (kv.GotoNextKey());
-	}
-}
-
-public Action Hook_PlayerHurt(Event event, const char [] command, int args){
-	int victim = GetClientOfUserId(GetEventInt(event, "userid"));
-	int attacker = GetClientOfUserId(GetEventInt(event, "attacker"));
-	if (VIP_IsVIP(attacker) && gc_DamagePrint.BoolValue && g_DamagePrint[attacker]){
-		VIP_Message(attacker, "你对 \x04%N\x01 造成了 \x04%i\x01 点伤害", victim, GetEventInt(event, "dmg_health"));
-	}
-}
-
-public Action Command_Buy(int client, const char [] command, int args){
-	if (!VIP_IsVIP(client) && gc_DisabledSticker.BoolValue){
-		CreateTimer(0.0, Timer_RemoveSticker, client);
-	}
-}
-
-public Action Timer_RemoveSticker(Handle timer, int client){
-	if (IsValidClient(client)){
-		RemoveSticker(client);
-	}
-}
-
-public Action Command_Sticker(int client, const char [] command, int args)
-{
-	if (!IsValidClient(client)){
-		return Plugin_Stop;
-	}
-	if (!VIP_IsVIP(client)){
-		VIP_Message(client, "你不是VIP，无法使用此指令");
-		return Plugin_Stop;
-	}
-	return Plugin_Continue;
 }
 
 public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast){
@@ -146,32 +83,11 @@ public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcas
 	if (VIP_IsVIP(client) && gc_VIPClanTag.BoolValue){
 		CS_SetClientClanTag(client, "✧VIP✧");
 	}
-	if (!VIP_IsVIP(client) && gc_DisabledSticker.BoolValue){
-		CreateTimer(0.0, Timer_RemoveSticker, client);
-	}
 }
 
-void RemoveSticker(int client){
-	int primary = GetPlayerWeaponSlot(client, CS_SLOT_PRIMARY);
-	int pistol = GetPlayerWeaponSlot(client, CS_SLOT_SECONDARY);
-	
-	if (primary != -1){
-		int PrimarySlots = eItems_GetWeaponStickersSlotsByWeapon(primary);
-		for (int i = 0; i <= PrimarySlots; i++){
-			CS_SetWeaponSticker(client, primary, i, 0, 0.0);
-		}
-	}
-	if (pistol != -1){
-		int PistolSlots = eItems_GetWeaponStickersSlotsByWeapon(pistol);
-		for (int i = 0; i <= PistolSlots; i++){
-			CS_SetWeaponSticker(client, pistol, i, 0, 0.0);
-		}
-	}
-}
-
-public void OnClientPutInServer(int client)
+public void OnClientPostAdminCheck(int client)
 {
-	if (IsValidClient(client)){
+	if (IsPlayer(client)){
 		char query[256];
 		FormatEx(query, sizeof(query), "SELECT * FROM vipUsers WHERE authId='%s'", GetAuthId(client));
 		g_Database.Query(SQL_CheckVIP, query, client);
@@ -192,22 +108,7 @@ public void OnClientDisconnect(int client)
 		g_Database.Query(SQL_CheckForErrors, query);
 		FormatEx(query, sizeof(query), "UPDATE vipPerks SET chatColor='%s' WHERE authId='%s'", g_Color[client][Color_Chat], GetAuthId(client))
 		g_Database.Query(SQL_CheckForErrors, query);
-		int damagePrint;
-		if (g_DamagePrint[client]){
-			damagePrint = 1;
-		} else {
-			damagePrint = 0;
-		}
-		FormatEx(query, sizeof(query), "UPDATE vipPerks SET damagePrint='%i' WHERE authId='%s'", damagePrint, GetAuthId(client));
-		g_Database.Query(SQL_CheckForErrors, query);
-		if (gc_DisconnectMsg.BoolValue){
-			SetHudTextParams(-1.0, 0.1, 7.0, 0, 255, 150, 255, 2, 6.0, 0.1, 0.2);
-			for (int i = 0; i < MaxClients; i++){
-				if (IsValidClient(i)){
-					ShowHudText(i, 0, "VIP %N 退出了服务器...", client);
-				}
-			}
-		}
+		g_Database.Query(SQL_CheckForErrors, query)
 	}
 	g_IsVIP[client] = false;
 	g_Change[client] = false;
@@ -243,17 +144,6 @@ public void SQL_GetChatColor(Database db, DBResultSet results, const char [] err
 	}
 }
 
-public void SQL_GetDamagePrint(Database db, DBResultSet results, const char [] error, int client){
-	if (results.FetchRow()){
-		int damagePrint = results.FetchInt(0);
-		if (damagePrint == 1){
-			g_DamagePrint[client] = true;
-		} else {
-			g_DamagePrint[client] = false;
-		}
-	}
-}
-
 public Action Command_Say(int client, const char [] command, int argc){
 	char args[256];
 	GetCmdArg(1, args, sizeof(args));
@@ -271,11 +161,11 @@ public Action Command_Say(int client, const char [] command, int argc){
 		if (g_JoinMsg[client]){
 			g_JoinMsg[client] = false;
 			Format(g_VIP[client][JoinMsg], sizeof(g_VIP), args);
-			VIP_Message(client, "你已成功修改你的进服提示为 \x02%s", args);
+			VIP_Message(client, "你已成功修改你的进服提示为 {DARK_RED}%s", args);
 		} else {
 			g_ChatTag[client] = false;
 			Format(g_VIP[client][ChatTag], sizeof(g_VIP), args);
-			VIP_Message(client, "你已成功修改你的聊天前缀为 \x02%s", args);
+			VIP_Message(client, "你已成功修改你的聊天前缀为 {DARK_RED}%s", args);
 		}
 		return Plugin_Stop;
 	}
@@ -301,10 +191,6 @@ public void SQL_CheckVIP(Database db, DBResultSet results, const char[] error, i
 	}
 	else {
 		g_IsVIP[client] = false;
-		/*
-		if (gc_Prime.BoolValue){
-			CheckPrime(client);
-		}*/
 	}
 }
 
@@ -457,7 +343,7 @@ public int Handler_Main(Menu menu, MenuAction action, int client, int select){
 			case 2:ChatTagColorChange(client);
 			case 3:NameColorChange(client);
 			case 4:JoinMessageChange(client);
-			case 5:DamagePrint(client);
+			case 5:LevelIcon(client);
 		}
 	}
 }
@@ -549,12 +435,11 @@ void NameColorChange(int client){
 	menu.Display(client, MENU_TIME_FOREVER);
 }
 
-void DamagePrint(int client){
-	if (g_DamagePrint[client]){
-		g_DamagePrint[client] = false;
-	} else {
-		g_DamagePrint[client] = true;
-	}
+void LevelIcon(int client){
+	if (g_LevelIcon[client])
+		g_LevelIcon[client] = false;
+	else
+		g_LevelIcon[client] = true;
 	Menus_Main(client);
 }
 
@@ -573,9 +458,6 @@ void Menus_Main(int client)
 	menu.AddItem("chat tag color", "更改聊天前缀颜色", gc_ChatTagColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
 	menu.AddItem("name color", "更改名字颜色", gc_NameColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
 	menu.AddItem("join msg", "更改进服提示", gc_JoinMsg.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	char damage[64];
-	Format(damage, sizeof(damage), "[%s] 伤害播报", g_DamagePrint[client] ? "√" : "X");
-	menu.AddItem("damage print", damage, gc_DamagePrint.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
 	menu.ExitButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -588,63 +470,14 @@ public void SQL_CheckForErrors(Database db, DBResultSet results, const char[] er
 		return;
 	}
 }
-/*
-void CheckPrime(int client){
-	if (k_EUserHasLicenseResultDoesNotHaveLicense == SteamWorks_HasLicenseForApp(client, 624820)){
-		KickClient(client, "只有优先状态的用户可以进入服务器 | VIP可解除限制");
-	} else {
-		if (gc_EnableGameTime.BoolValue){
-			CheckGameTime(client);
-		}
-	}
-}
 
-void CheckGameTime(int client){
-	char url[512];
-	char steamid[64];
-	GetClientAuthId(client, AuthId_SteamID64, steamid, sizeof(steamid));
-	Format(url, sizeof(url), "http://api.steampowered.com/IPlayerService/GetOwnedGames/v0001/?key=%s&steamid=%s&appids_filter[0]=730", "key", steamid);
-	Handle request = SteamWorks_CreateHTTPRequest(k_EHTTPMethodGET, url);
-	SteamWorks_SetHTTPRequestContextValue(request, GetClientUserId(client));
-	SteamWorks_SetHTTPCallbacks(request, HttpCallBack);
-	SteamWorks_SendHTTPRequest(request);
-}
-
-public int HttpCallBack(Handle request, bool Failure, bool RequestSuccessful, EHTTPStatusCode StatusCode, int userid){
-	int client = GetClientOfUserId(userid);
-	if (!RequestSuccessful || StatusCode != k_EHTTPStatusCode200OK){
-		return;
-	}
-	char content[1024];
-    response.GetContent(content, response.ContentLength + 1);
-
-    Regex regex = new Regex("(?<=\"playtime_forever\":).*?(?=,)");
-    if (regex.Match(content) > 0)
-    {
-        char client_time[128];
-        regex.GetSubString(0, client_time, sizeof(client_time));
-        
-        int hour = StringToInt(client_time) / 60;
-        LogMessage("player: %N, time: %d", client, hour);
-
-        if (hour < gc_GameTime.IntValue)
-        {
-            KickClient(client, "游戏时间不满300小时或资料不公开 | VIP可解除限制 | Q群:760586300");
-        }
-    }
-    else
-    {
-        KickClient(client, "游戏时间不满300小时或资料不公开 | VIP可解除限制 | Q群:760586300");
-    }
-}*/
-
-char GetAuthId(int client){
+stock char GetAuthId(int client){
 	char steamid[64];
 	GetClientAuthId(client, AuthId_Steam2, steamid, sizeof(steamid));
 	return steamid;
 }
 
-void RGB(const char[] source, char[] buffer, int size)
+stock void RGB(const char[] source, char[] buffer, int size)
 {
 	static char color[][] = {
 			"\x01",
@@ -678,15 +511,7 @@ void RGB(const char[] source, char[] buffer, int size)
 	}
 }
 
-bool IsValidClient(int client)
-{
-	if (!(1 <= client <= MaxClients) || !IsClientInGame(client) || IsFakeClient(client)){
-		return false;
-	}
-	return true;
-}
-
-void ShowVIPInfo(int client){
+stock void ShowVIPInfo(int client){
 	char query[256];
 	FormatEx(query, sizeof(query), "SELECT chatTag FROM vipPerks WHERE authId='%s'", GetAuthId(client));
 	g_Database.Query(SQL_GetChatTag, query, client);
@@ -698,11 +523,9 @@ void ShowVIPInfo(int client){
 	g_Database.Query(SQL_GetNameColor, query, client);
 	FormatEx(query, sizeof(query), "SELECT chatColor FROM vipPerks WHERE authId='%s'", GetAuthId(client));
 	g_Database.Query(SQL_GetChatColor, query, client);
-	FormatEx(query, sizeof(query), "SELECT damagePrint FROM vipPerks WHERE authId='%s'", GetAuthId(client));
-	g_Database.Query(SQL_GetDamagePrint, query, client);
 	SetHudTextParams(-1.0, 0.1, 7.0, 0, 255, 150, 255, 2, 6.0, 0.1, 0.2);
 	for (int i = 0; i < MaxClients; i++){
-		if (IsValidClient(i)){
+		if (IsPlayer(i)){
 			ShowHudText(i, 0, "VIP %N 正在连接服务器...\n%s", client, g_VIP[client][JoinMsg]);
 		}
 	}

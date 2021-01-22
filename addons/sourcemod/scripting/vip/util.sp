@@ -1,16 +1,6 @@
-#include <cstrike>
-#include <sdktools>
-
-#if !defined PLUGIN_VERSION
-#define PLUGIN_VERSION "1.4"
-#endif
-
-#define MAX_INTEGER_STRING_LENGTH 16
-#define MAX_FLOAT_STRING_LENGTH 32
-
-static char _colorNames[][] = {"{NORMAL}", "{DARK_RED}",    "{PINK}",      "{GREEN}",
-                               "{YELLOW}", "{LIGHT_GREEN}", "{LIGHT_RED}", "{GRAY}",
-                               "{ORANGE}", "{LIGHT_BLUE}",  "{DARK_BLUE}", "{PURPLE}"};
+static char _colorNames[][] = {"{normal}", "{dark_red}",    "{pink}",      "{green}",
+                               "{yellow}", "{light_green}", "{light_red}", "{grey}",
+                               "{orange}", "{light_blue}",  "{dark_blue}", "{purple}"};
 static char _colorCodes[][] = {"\x01", "\x02", "\x03", "\x04", "\x05", "\x06",
                                "\x07", "\x08", "\x09", "\x0B", "\x0C", "\x0E"};
 
@@ -21,4 +11,12 @@ stock void Colorize(char[] msg, int size, bool stripColor = false) {
     else
       ReplaceString(msg, size, _colorNames[i], _colorCodes[i]);
   }
+}
+
+stock bool IsValidClient(int client) {
+  return client > 0 && client <= MaxClients && IsClientConnected(client) && IsClientInGame(client);
+}
+
+stock bool IsPlayer(int client) {
+  return IsValidClient(client) && !IsFakeClient(client);
 }
