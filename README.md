@@ -1,23 +1,35 @@
-**更新日志**
-2021-1-22 17:00
--跳过了1.5版本，来到了1.6版本
--VIP功能模块化
--优化了VIP系统
--新增VIP时长限制（目前锁定200小时，后续会出自定义，可自己更改源码编译，需要system2扩展）
--修复了一些bug
-
-2020-12-13 0:35
--修复了聊天前缀以及聊天中所有颜色不保存的bug
--修复了数据库不保存聊天中所有颜色的bug *原显示乱码*
-
-2020-12-11 23:10
--更新了断开连接时的提示
--更新了自定义前缀
--更新了伤害提示
--新增api *VIP_Message* *使用api发送信息时会自带前缀*
--修复了玩家不是vip但仍然会显示进服提示的bug
-
-**即将完成**
--VIP专属等级图标自定义
--VIP时长限制更改
--计划移除chat-processor插件
+# API
+- <kbd>void</kbd> VIP_Message
+    - 说明：向指定玩家发送信息，会自动带上VIP前缀
+    - <kbd>client</kbd> client index.
+    - <kbd>text</kbd> Format message.
+- <kbd>void</kbd> VIP_MessageToAll
+    - 说明：向所有玩家发送信息，会自动带上VIP前缀
+    - <kbd>text</kbd> Format message.
+- <kbd>bool</kbd> VIP_IsVIP
+    - 说明：判断玩家是否为VIP，是则返回true，不是则返回false
+    - <kbd>client</kbd> client index.
+- <kbd>int</kbd> VIP_GetClientDays
+    - 说明：返回玩家的VIP剩余天数，若玩家不是VIP或不是一个有效的玩家则返回-1
+    - <kbd>client</kbd> client index.
+# 更新日志
+- 2021-1-22 17:00
+    - 跳过1.5版本，来到1.6版本
+    - VIP功能模块化
+    - 优化了VIP系统
+    - 新增VIP时长限制（目前锁定200小时，后续会出自定义，可自己更改源码编译，需要system2扩展）
+    - 修复了一些bug
+    - 新增api
+- 2020-12-13 0:35
+    - 修复了聊天前缀以及聊天中所有颜色不保存的bug
+    - 修复了数据库不保存聊天中所有颜色的bug *原显示乱码*
+- 2020-12-11 23:10
+    - 更新了断开连接时的提示
+    - 更新了自定义前缀
+    - 更新了伤害提示
+    - 新增api
+    - 修复了玩家不是vip但仍然会显示进服提示的bug
+# 即将完成
+- VIP专属等级图标自定义
+- VIP时长限制更改
+- 计划移除chat-processor插件
