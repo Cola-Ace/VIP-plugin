@@ -34,7 +34,6 @@ bool g_Change[MAXPLAYERS + 1];
 bool g_ClanTag[MAXPLAYERS + 1];
 bool g_ChatTag[MAXPLAYERS + 1];
 bool g_JoinMsg[MAXPLAYERS + 1];
-bool g_LevelIcon[MAXPLAYERS + 1];
 
 int g_LeftDays[MAXPLAYERS + 1] = 0;
 
@@ -343,7 +342,6 @@ public int Handler_Main(Menu menu, MenuAction action, int client, int select){
 			case 2:ChatTagColorChange(client);
 			case 3:NameColorChange(client);
 			case 4:JoinMessageChange(client);
-			case 5:LevelIcon(client);
 		}
 	}
 }
@@ -433,14 +431,6 @@ void NameColorChange(int client){
 	menu.ExitButton = true;
 	menu.ExitBackButton = false;
 	menu.Display(client, MENU_TIME_FOREVER);
-}
-
-void LevelIcon(int client){
-	if (g_LevelIcon[client])
-		g_LevelIcon[client] = false;
-	else
-		g_LevelIcon[client] = true;
-	Menus_Main(client);
 }
 
 void JoinMessageChange(int client){
