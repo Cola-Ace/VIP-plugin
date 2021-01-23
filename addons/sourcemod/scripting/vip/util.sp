@@ -7,9 +7,9 @@ static char _colorCodes[][] = {"\x01", "\x02", "\x03", "\x04", "\x05", "\x06",
 stock void Colorize(char[] msg, int size, bool stripColor = false) {
   for (int i = 0; i < sizeof(_colorNames); i++) {
     if (stripColor)
-      ReplaceString(msg, size, _colorNames[i], "\x01");  // replace with white
+      ReplaceString(msg, size, _colorNames[i], "\x01", false);  // replace with white
     else
-      ReplaceString(msg, size, _colorNames[i], _colorCodes[i]);
+      ReplaceString(msg, size, _colorNames[i], _colorCodes[i], false);
   }
 }
 

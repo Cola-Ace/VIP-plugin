@@ -2,7 +2,6 @@
 #include <cstrike>
 #include <sdktools>
 #include <chat-processor>
-#include <colorvariables>
 #include <vip>
 #include <restorecvars>
 #include <sdkhooks>
