@@ -1,3 +1,4 @@
+[![Release](https://img.shields.io/github/v/release/Cola-Ace/VIP-plugin)](https://github.com/Cola-Ace/VIP-plugin/releases)
 # API
 - <kbd>forward void</kbd> VIP_OnClientPutInServer
     - 说明：当玩家进入服务器，且读取完用户VIP数据时调用
