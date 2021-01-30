@@ -4,17 +4,17 @@
     - 说明：当玩家进入服务器，且读取完用户VIP数据时调用
     - <kbd>client</kbd> client index.
     - <kbd>isvip</kbd> return true if client is vip.
-- <kbd>void</kbd> VIP_Message
+- <kbd>native void</kbd> VIP_Message
     - 说明：向指定玩家发送信息，会自动带上VIP前缀
     - <kbd>client</kbd> client index.
     - <kbd>text</kbd> Format message.
-- <kbd>void</kbd> VIP_MessageToAll
+- <kbd>native void</kbd> VIP_MessageToAll
     - 说明：向所有玩家发送信息，会自动带上VIP前缀
     - <kbd>text</kbd> Format message.
-- <kbd>bool</kbd> VIP_IsVIP
+- <kbd>native bool</kbd> VIP_IsVIP
     - 说明：判断玩家是否为VIP，是则返回true，不是则返回false
     - <kbd>client</kbd> client index.
-- <kbd>int</kbd> VIP_GetClientDays
+- <kbd>native int</kbd> VIP_GetClientDays
     - 说明：返回玩家的VIP剩余天数，若玩家不是VIP或不是一个有效的玩家则返回-1
     - <kbd>client</kbd> client index.
 # 更新日志
