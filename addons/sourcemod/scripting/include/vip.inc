@@ -3,9 +3,17 @@
 #endif
 #define _vip_included
 
-#define PLUGIN_VERSION "1.6"
+#define PLUGIN_VERSION "1.6.3"
 
 #include "vip/util.sp"
+
+/*
+ * When client put in server.
+ *
+ * @param client client index.
+ * @param isvip return true if client is vip.
+ */
+forward void VIP_OnClientPutInServer(int client, bool isvip);
 
 /*
  * Return true if client is vip.

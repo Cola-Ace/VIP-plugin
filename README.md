@@ -1,4 +1,8 @@
 # API
+- <kbd>forward voidM</kbd> VIP_OnClientPutInServer
+    - 说明：当玩家进入服务器，且读取完用户VIP数据时调用
+    - <kbd>client</kbd> client index.
+    - <kbd>isvip</kbd> return true if client is vip.
 - <kbd>void</kbd> VIP_Message
     - 说明：向指定玩家发送信息，会自动带上VIP前缀
     - <kbd>client</kbd> client index.
@@ -13,6 +17,10 @@
     - 说明：返回玩家的VIP剩余天数，若玩家不是VIP或不是一个有效的玩家则返回-1
     - <kbd>client</kbd> client index.
 # 更新日志
+- 2021-1-30 20:34
+    - 修改了VIP时长限制，可自定义限制时长，踢出信息
+    - 新增仅VIP可进入的插件
+    - 修复自动更新bug
 - 2021-1-23 13:20
     - 修复了颜色代码不生效的bug
 - 2021-1-22 21:00

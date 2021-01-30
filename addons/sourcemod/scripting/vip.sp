@@ -18,6 +18,8 @@ enum Type {
 	JoinMsg
 }
 
+Handle g_hOnClientPutInServer;
+
 Database g_Database = null;
 
 ConVar gc_ChatTag;
@@ -74,12 +76,18 @@ public void OnPluginStart(){
 	AddCommandListener(Command_Say, "say_team");
 	ExecuteAndSaveCvars("sourcemod/vip.cfg");
 	HookEvent("player_spawn", Hook_PlayerSpawn);
+	
+	g_hOnClientPutInServer = CreateGlobalForward("VIP_OnClientPutInServer", ET_Hook, Param_Cell, Param_Cell);
 }
 
 public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast){
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if (VIP_IsVIP(client) && gc_VIPClanTag.BoolValue){
-		CS_SetClientClanTag(client, "✧VIP✧");
+		if (g_LeftDays[client] >= 365){
+			CS_SetClientClanTag(client, "✧年VIP✧");
+		} else {
+			CS_SetClientClanTag(client, "✧VIP✧");
+		}
 	}
 }
 
@@ -106,7 +114,6 @@ public void OnClientDisconnect(int client)
 		g_Database.Query(SQL_CheckForErrors, query);
 		FormatEx(query, sizeof(query), "UPDATE vipPerks SET chatColor='%s' WHERE authId='%s'", g_Color[client][Color_Chat], GetAuthId(client))
 		g_Database.Query(SQL_CheckForErrors, query);
-		g_Database.Query(SQL_CheckForErrors, query)
 	}
 	g_IsVIP[client] = false;
 	g_Change[client] = false;
@@ -190,6 +197,10 @@ public void SQL_CheckVIP(Database db, DBResultSet results, const char[] error, i
 	else {
 		g_IsVIP[client] = false;
 	}
+	Call_StartForward(g_hOnClientPutInServer);
+	Call_PushCell(client)
+	Call_PushCell(g_IsVIP[client]);
+	Call_Finish();
 }
 
 public Action CP_OnChatMessage(int& client, ArrayList recipients, char[] flagstring, char[] name, char[] message, bool & processcolors, bool & removecolors)

@@ -24,9 +24,9 @@ public void OnPluginStart(){
 	ExecuteAndSaveCvars("sourcemod/vip_profilelimiter.cfg");
 }
 
-public void OnClientPostAdminCheck(int client)
+public void VIP_OnClientPutInServer(int client, bool isvip)
 {
-	if (!VIP_IsVIP(client) && IsPlayer(client))
+	if (!isvip && IsPlayer(client))
 	{
 		CheckTime(client);
 	}
