@@ -1,5 +1,5 @@
 # API
-- <kbd>forward voidM</kbd> VIP_OnClientPutInServer
+- <kbd>forward void</kbd> VIP_OnClientPutInServer
     - 说明：当玩家进入服务器，且读取完用户VIP数据时调用
     - <kbd>client</kbd> client index.
     - <kbd>isvip</kbd> return true if client is vip.
