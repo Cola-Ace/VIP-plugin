@@ -10,7 +10,7 @@ public Plugin myinfo = {
 	url = "https://github.com/Cola-Ace/VIP-Plugin"
 }
 
-#define UPDATE_URL "http://api.sqtool.xyz/update.txt"
+#define UPDATE_URL "https://www.sqtool.xyz/plugin/update/update.txt"
 
 public void OnPluginStart()
 {

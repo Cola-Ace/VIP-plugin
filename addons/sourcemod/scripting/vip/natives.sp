@@ -4,10 +4,45 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("VIP_Message", Native_Message);
 	CreateNative("VIP_MessageToAll", Native_MessageToAll);
 	CreateNative("VIP_GetClientDays", Native_GetClientDays);
+	CreateNative("VIP_SetClientDays", Native_SetClientDays);
+	CreateNative("VIP_GetClientState", Native_GetClientState);
+	CreateNative("VIP_SetClientState", Native_SetClientState);
 	
 	RegPluginLibrary("vip");
 	
 	return APLRes_Success;
+}
+
+public int Native_GetClientState(Handle plugin, int numParams){
+	int client = GetNativeCell(1);
+	if (!IsPlayer(client))return view_as<int>(VIPState_NoVIP);
+	return view_as<int>(g_State[client]);
+}
+
+public int Native_SetClientState(Handle plugin, int numParams){
+	int client = GetNativeCell(1);
+	if (!IsPlayer(client))return false;
+	Call_StartForward(g_hOnClientStateChanged);
+	Call_PushCell(client);
+	Call_PushCell(g_State[client]);
+	g_State[client] = GetNativeCell(2);
+	Call_PushCell(g_State[client]);
+	Call_Finish();
+	return true;
+}
+
+public int Native_SetClientDays(Handle plugin, int numParams){
+	int client = GetNativeCell(1);
+	int days = GetNativeCell(2);
+	if (!IsPlayer(client))return false;
+	g_LeftDays[client] = days;
+	if (!VIP_IsVIP(client)){
+		if (days >= 365)
+			VIP_SetClientState(client, VIPState_IsYearVIP);
+		else
+			VIP_SetClientState(client, VIPState_IsVIP);
+	}
+	return true;
 }
 
 public int Native_GetClientDays(Handle plugin, int numParams){
@@ -52,8 +87,8 @@ public int Native_MessageToAll(Handle plugin, int numParams){
 public int Native_IsVip(Handle plugin, int numParams)
 {
 	int client = GetNativeCell(1);
-	if (g_IsVIP[client] == true){
-		return true;
+	if (VIP_GetClientState(client) == VIPState_NoVIP){
+		return false;
 	}
-	return false;
+	return true;
 }
