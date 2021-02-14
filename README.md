@@ -37,6 +37,14 @@
     - 说明：获取玩家的VIP状态
     - <kbd>client</kbd> client index.
 # 更新日志
+- 2021-2-15 0:10
+    - 本次更新有更改数据库的表，如需导入sql文件请先备份数据，数据丢失概不负责
+    - 新增vip_logs插件，可记录操作日志（兑换卡密，玩家VIP状态改变）
+    - 修复时长限制不生效的bug
+    - 修复vip_onlyvip插件不生效的bug
+    - 修复了如果玩家不是VIP则不会调用VIP_OnClientPutInServer的bug
+    - 修复了VIP_OnClientPutInServer的VIPState不会出现VIPState_NoVIP的bug
+    - 写给开发者：从这次更新后每次更新都会在.inc文件里写本次更新内容（更详细）和TODO
 - 2021-2-6 22:30
     - 新增vip_flag插件，会自动令管理员拥有年VIP
     - 新增API

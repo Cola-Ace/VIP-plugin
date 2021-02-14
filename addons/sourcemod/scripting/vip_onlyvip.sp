@@ -10,6 +10,8 @@ public Plugin myinfo = {
 }
 
 public void VIP_OnClientPutInServer(int client, VIPState State){
-	if (State == VIPState_NoVIP)
-		KickClient(client, "此服务器仅VIP可进入");
+	if (!CheckCommandAccess(client, "sm_admin", ADMFLAG_GENERIC, false)){
+		if (State == VIPState_NoVIP)
+			KickClient(client, "此服务器仅VIP可进入");
+	}
 }

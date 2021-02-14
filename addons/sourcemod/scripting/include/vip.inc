@@ -3,7 +3,22 @@
 #endif
 #define _vip_included
 
-#define PLUGIN_VERSION "1.7.4"
+#define PLUGIN_VERSION "1.7.6"
+
+/*
+	Update Log:
+	- Change enum base array to enum struct.
+	- Fixed Only VIP Plugin.
+	- Fixed Profile Limiter Plugin.
+	- Fixed if client not vip, VIP_OnClientPutInServer will not be called.
+	- Fixed no VIPState_NoVIP in VIP_OnClientPutInServer.
+	
+	TODO:
+	- Disabled Sticker without relying on other sticker plugins(always need eItems and ripext).
+	- Fix VIP Flag Plugin.
+	- Custom Damage Print Message.
+	- More VIP Logs.
+*/
 
 #include "vip/util.sp"
 
@@ -15,7 +30,6 @@ enum VIPState {
 
 /*
  * Called it when client exchange vip key.
- *
  * @param client client index.
  * @param key vip key.
  * @param days key days.
@@ -24,15 +38,14 @@ forward void VIP_OnKeyExchange(int client, const char[] key, int days);
 
 /*
  * Called it when client state changed.
- *
  * @param client client index.
- * @param State vip state.
+ * @param Before_State before vip state.
+ * @param After_State after vip state.
  */
 forward void VIP_OnClientStateChanged(int client, VIPState Before_State, VIPState After_State);
 
 /*
  * When client put in server.
- *
  * @param client client index.
  * @param State return client vip state.
  */
@@ -40,9 +53,7 @@ forward void VIP_OnClientPutInServer(int client, VIPState State);
 
 /*
  * Return true if client is vip.
- *
  * @param client client index.
- *
  * @return Return true if client is vip.
  */
 native bool VIP_IsVIP(int client);
@@ -71,7 +82,6 @@ native bool VIP_SetClientDays(int client, int days);
 /*
  * Get client vip state.
  * @param client client index.
-
  * @return Return client VIPState.
  */
 native VIPState VIP_GetClientState(int client);
@@ -86,9 +96,7 @@ native bool VIP_SetClientState(int client, VIPState State);
 
 /*
  * Return Client VIP Left Days.
- * 
  * @param client client index.
- *
  * @return Return left days, return -1 if client is not vip.
  */
 native int VIP_GetClientDays(int client);

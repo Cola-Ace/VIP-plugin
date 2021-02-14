@@ -6,16 +6,16 @@
 #include <restorecvars>
 #include <sdkhooks>
 
-enum Color {
-	Color_ChatTag = 0,
-	Color_Name,
-	Color_Chat
+enum struct Color {
+	char Color_ChatTag[64];
+	char Color_Name[64];
+	char Color_Chat[64];
 }
 
-enum Type {
-	ChatTag = 0,
-	ClanTag,
-	JoinMsg
+enum struct VIPType {
+	char ChatTag[64];
+	char ClanTag[64];
+	char JoinMsg[64];
 }
 
 Handle g_hOnClientPutInServer;
@@ -36,11 +36,12 @@ bool g_Change[MAXPLAYERS + 1];
 bool g_ClanTag[MAXPLAYERS + 1];
 bool g_ChatTag[MAXPLAYERS + 1];
 bool g_JoinMsg[MAXPLAYERS + 1];
+bool g_VIPClanTag[MAXPLAYERS + 1];
 
 int g_LeftDays[MAXPLAYERS + 1] = 0;
 
-char g_Color[MAXPLAYERS + 1][Color][64];
-char g_VIP[MAXPLAYERS + 1][Type][64];
+Color g_Color[MAXPLAYERS + 1];
+VIPType g_VIP[MAXPLAYERS + 1];
 
 VIPState g_State[MAXPLAYERS + 1] = VIPState_NoVIP;
 
@@ -80,9 +81,9 @@ public void OnPluginStart(){
 	ExecuteAndSaveCvars("sourcemod/vip.cfg");
 	HookEvent("player_spawn", Hook_PlayerSpawn);
 	
-	g_hOnClientPutInServer = CreateGlobalForward("VIP_OnClientPutInServer", ET_Hook, Param_Cell, Param_Cell);
-	g_hOnKeyExchange = CreateGlobalForward("VIP_OnKeyExchange", ET_Hook, Param_Cell, Param_String, Param_Cell);
-	g_hOnClientStateChanged = CreateGlobalForward("VIP_OnClientStateChanged", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
+	g_hOnClientPutInServer = CreateGlobalForward("VIP_OnClientPutInServer", ET_Ignore, Param_Cell, Param_Cell);
+	g_hOnKeyExchange = CreateGlobalForward("VIP_OnKeyExchange", ET_Ignore, Param_Cell, Param_String, Param_Cell);
+	g_hOnClientStateChanged = CreateGlobalForward("VIP_OnClientStateChanged", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 }
 
 public void VIP_OnClientStateChanged(int client, VIPState Before_State, VIPState After_State){
@@ -93,7 +94,7 @@ public void VIP_OnClientStateChanged(int client, VIPState Before_State, VIPState
 
 public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast){
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
-	if (VIP_IsVIP(client) && gc_VIPClanTag.BoolValue){
+	if (VIP_IsVIP(client) && gc_VIPClanTag.BoolValue && g_VIPClanTag[client]){
 		if (VIP_GetClientState(client) == VIPState_IsYearVIP){
 			CS_SetClientClanTag(client, "✧年VIP✧");
 		} else {
@@ -105,6 +106,7 @@ public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcas
 public void OnClientPostAdminCheck(int client)
 {
 	if (IsPlayer(client)){
+		LogMessage("Client Post Admin Check");
 		char query[256];
 		Format(query, sizeof(query), "SELECT * FROM vipUsers WHERE authId='%s'", GetAuthId(client));
 		g_Database.Query(SQL_CheckVIP, query, client);
@@ -117,15 +119,17 @@ public void OnClientDisconnect(int client)
 		char auth[64];
 		Format(auth, sizeof(auth), GetAuthId(client));
 		char query[256];
-		Format(query, sizeof(query), "UPDATE vipPerks SET chatTag='%s' WHERE authId='%s'", g_VIP[client][ChatTag], auth);
+		Format(query, sizeof(query), "UPDATE vipPerks SET chatTag='%s' WHERE authId='%s'", g_VIP[client].ChatTag, auth);
 		g_Database.Query(SQL_CheckForErrors, query);
-		Format(query, sizeof(query), "UPDATE vipPerks SET joinMsg='%s' WHERE authId='%s'", g_VIP[client][JoinMsg], auth);
+		Format(query, sizeof(query), "UPDATE vipPerks SET joinMsg='%s' WHERE authId='%s'", g_VIP[client].JoinMsg, auth);
 		g_Database.Query(SQL_CheckForErrors, query);
-		Format(query, sizeof(query), "UPDATE vipPerks SET tagColor='%s' WHERE authId='%s'", g_Color[client][Color_ChatTag], auth)
+		Format(query, sizeof(query), "UPDATE vipPerks SET tagColor='%s' WHERE authId='%s'", g_Color[client].Color_ChatTag, auth)
 		g_Database.Query(SQL_CheckForErrors, query);
-		Format(query, sizeof(query), "UPDATE vipPerks SET nameColor='%s' WHERE authId='%s'", g_Color[client][Color_Name], auth)
+		Format(query, sizeof(query), "UPDATE vipPerks SET nameColor='%s' WHERE authId='%s'", g_Color[client].Color_Name, auth)
 		g_Database.Query(SQL_CheckForErrors, query);
-		Format(query, sizeof(query), "UPDATE vipPerks SET chatColor='%s' WHERE authId='%s'", g_Color[client][Color_Chat], auth)
+		Format(query, sizeof(query), "UPDATE vipPerks SET chatColor='%s' WHERE authId='%s'", g_Color[client].Color_Chat, auth)
+		g_Database.Query(SQL_CheckForErrors, query);
+		Format(query, sizeof(query), "UPDATE vipPerks SET clanTag='%s' WHERE authId='%s'", view_as<int>(g_VIPClanTag[client]), auth);
 		g_Database.Query(SQL_CheckForErrors, query);
 		int isyear = 0;
 		if (VIP_GetClientState(client) == VIPState_IsYearVIP)isyear = 1;
@@ -134,35 +138,48 @@ public void OnClientDisconnect(int client)
 	}
 	g_State[client] = VIPState_NoVIP;
 	g_Change[client] = false;
+	g_VIPClanTag[client] = false;
 }
 
-public void SQL_GetChatTag(Database db, DBResultSet results, const char [] error, int client){
+public void SQL_GetChatTag(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
-		results.FetchString(0, g_VIP[client][ChatTag], sizeof(g_VIP));
+		results.FetchString(0, g_VIP[client].ChatTag, sizeof(g_VIP));
 	}
 }
 
-public void SQL_GetJoinMsg(Database db, DBResultSet results, const char [] error, int client){
+public void SQL_GetJoinMsg(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
-		results.FetchString(0, g_VIP[client][JoinMsg], sizeof(g_VIP));
+		results.FetchString(0, g_VIP[client].JoinMsg, sizeof(g_VIP));
 	}
 }
 
-public void SQL_GetNameColor(Database db, DBResultSet results, const char [] error, int client){
+public void SQL_GetNameColor(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
-		results.FetchString(0, g_Color[client][Color_Name], sizeof(g_Color));
+		results.FetchString(0, g_Color[client].Color_Name, sizeof(g_Color));
 	}
 }
 
-public void SQL_GetTagColor(Database db, DBResultSet results, const char [] error, int client){
+public void SQL_GetTagColor(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
-		results.FetchString(0, g_Color[client][Color_ChatTag], sizeof(g_Color));
+		results.FetchString(0, g_Color[client].Color_ChatTag, sizeof(g_Color));
 	}
 }
 
-public void SQL_GetChatColor(Database db, DBResultSet results, const char [] error, int client){
+public void SQL_GetChatColor(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
-		results.FetchString(0, g_Color[client][Color_Chat], sizeof(g_Color));
+		results.FetchString(0, g_Color[client].Color_Chat, sizeof(g_Color));
+	}
+}
+
+public void SQL_CheckClanTag(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
+	if (results.FetchRow()){
+		g_VIPClanTag[client] = view_as<bool>(results.FetchInt(0));
 	}
 }
 
@@ -179,11 +196,11 @@ public Action Command_Say(int client, const char [] command, int argc){
 		}
 		if (g_JoinMsg[client]){
 			g_JoinMsg[client] = false;
-			Format(g_VIP[client][JoinMsg], sizeof(g_VIP), args);
+			Format(g_VIP[client].JoinMsg, sizeof(g_VIP), args);
 			VIP_Message(client, "你已成功修改你的进服提示为 {DARK_RED}%s", args);
 		} else {
 			g_ChatTag[client] = false;
-			Format(g_VIP[client][ChatTag], sizeof(g_VIP), args);
+			Format(g_VIP[client].ChatTag, sizeof(g_VIP), args);
 			VIP_Message(client, "你已成功修改你的聊天前缀为 {DARK_RED}%s", args);
 		}
 		return Plugin_Stop;
@@ -197,6 +214,7 @@ public void SQL_CheckVIP(Database db, DBResultSet results, const char[] error, i
 		int Stamp = results.FetchInt(1);
 		int NowStamp = GetTime();
 		if (Stamp < NowStamp){
+			LogMessage("Del Client VIP");
 			char query[256];
 			Format(query, sizeof(query), "DELETE FROM vipUsers WHERE authId='%s'", GetAuthId(client))
 			g_Database.Query(SQL_CheckForErrors, query);
@@ -209,6 +227,10 @@ public void SQL_CheckVIP(Database db, DBResultSet results, const char[] error, i
 	}
 	else {
 		VIP_SetClientState(client, VIPState_NoVIP);
+		Call_StartForward(g_hOnClientPutInServer);
+		Call_PushCell(client);
+		Call_PushCell(VIPState_NoVIP);
+		Call_Finish();
 	}
 	
 }
@@ -216,47 +238,47 @@ public void SQL_CheckVIP(Database db, DBResultSet results, const char[] error, i
 public Action CP_OnChatMessage(int& client, ArrayList recipients, char[] flagstring, char[] name, char[] message, bool & processcolors, bool & removecolors)
 {
 	if (VIP_IsVIP(client)){
-		if (StrEqual(g_Color[client][Color_Name], "") == false){
-			if (StrEqual(g_Color[client][Color_Name], "rgb") == true){
+		if (StrEqual(g_Color[client].Color_Name, "") == false){
+			if (StrEqual(g_Color[client].Color_Name, "rgb") == true){
 				StripQuotes(name);
 				char rgb[256];
 				RGB(name, rgb, sizeof(rgb));
 				Format(name, MAXLENGTH_NAME, rgb);
 			}
 			else {
-				Format(name, MAXLENGTH_NAME, "%s%s", g_Color[client][Color_Name], name);
+				Format(name, MAXLENGTH_NAME, "%s%s", g_Color[client].Color_Name, name);
 			}
 		}
 		else {
 			Format(name, MAXLENGTH_NAME, "{normal}%s", name);
 		}
-		if (StrEqual(g_VIP[client][ChatTag], "") == false){
-			if (StrEqual(g_Color[client][ChatTag], "") == false && StrEqual(g_Color[client][ChatTag], "null") == false){
-				if (StrEqual(g_Color[client][ChatTag], "rgb") == true){
+		if (StrEqual(g_VIP[client].ChatTag, "") == false){
+			if (StrEqual(g_Color[client].Color_ChatTag, "") == false && StrEqual(g_Color[client].Color_ChatTag, "null") == false){
+				if (StrEqual(g_Color[client].Color_ChatTag, "rgb") == true){
 					char tag[64];
 					char rgb[256];
-					Format(tag, sizeof(tag), "[%s]", g_VIP[client][ChatTag]);
+					Format(tag, sizeof(tag), "[%s]", g_VIP[client].ChatTag);
 					StripQuotes(tag);
 					RGB(tag, rgb, sizeof(rgb));
 					Format(name, MAXLENGTH_NAME, "%s %s", rgb, name);
 				}
 				else {
-					Format(name, MAXLENGTH_NAME, "%s[%s] %s", g_Color[client][Color_ChatTag], g_VIP[client][ChatTag], name);
+					Format(name, MAXLENGTH_NAME, "%s[%s] %s", g_Color[client].Color_ChatTag, g_VIP[client].ChatTag, name);
 				}
 			}
 			else {
-				Format(name, MAXLENGTH_NAME, "[%s] %s", g_VIP[client][ChatTag], name);
+				Format(name, MAXLENGTH_NAME, "[%s] %s", g_VIP[client].ChatTag, name);
 			}
 		}
-		if (StrEqual(g_Color[client][Color_Chat], "") == false){
-			if (StrEqual(g_Color[client][Color_Chat], "rgb") == true){
+		if (StrEqual(g_Color[client].Color_Chat, "") == false){
+			if (StrEqual(g_Color[client].Color_Chat, "rgb") == true){
 				StripQuotes(message);
 				char rgb[256];
 				RGB(message, rgb, sizeof(rgb));
 				Format(message, MAXLENGTH_MESSAGE, rgb);
 			}
 			else {
-				Format(message, MAXLENGTH_MESSAGE, "%s%s", g_Color[client][Color_Chat], message);
+				Format(message, MAXLENGTH_MESSAGE, "%s%s", g_Color[client].Color_Chat, message);
 			}
 		}
 		Colorize(name, MAXLENGTH_NAME);
@@ -274,16 +296,14 @@ public Action Command_VIP(int client, int args)
 		VIPKEY(client, key);
 		return Plugin_Stop;
 	}
+	char query[256];
+	Format(query, sizeof(query), "SELECT DAYS FROM vipPrivateCode WHERE authId='%s'", GetAuthId(client));
+	g_Database.Query(SQL_PrivateCode, query, client);
+	if (VIP_IsVIP(client)){
+		Menus_Main(client);
+	}
 	else {
-		char query[256];
-		Format(query, sizeof(query), "SELECT DAYS FROM vipPrivateCode WHERE authId='%s'", GetAuthId(client));
-		g_Database.Query(SQL_PrivateCode, query, client);
-		if (VIP_IsVIP(client)){
-			Menus_Main(client);
-		}
-		else {
-			VIP_Message(client, "你不是VIP");
-		}
+		VIP_Message(client, "你不是VIP");
 	}
 	return Plugin_Continue;
 }
@@ -298,10 +318,10 @@ public void SQL_PrivateCode(Database db, DBResultSet results, const char [] erro
 		Format(Stamp, sizeof(Stamp), "%i", GetTime() + (days * 86400));
 		Format(NewStamp, sizeof(NewStamp), "%i", GetTime() + ((days+g_LeftDays[client]) * 86400));
 		if (VIP_IsVIP(client)){
-			FormatEx(query, sizeof(query), "UPDATE vipUsers SET expireStamp='%s' WHERE authId='%s'", NewStamp, GetAuthId(client));
+			Format(query, sizeof(query), "UPDATE vipUsers SET expireStamp='%s' WHERE authId='%s'", NewStamp, GetAuthId(client));
 			g_LeftDays[client] += days;
 		} else {
-			FormatEx(query, sizeof(query), "INSERT INTO vipUsers (authId, expireStamp) VALUES ('%s', '%s')", GetAuthId(client), Stamp);
+			Format(query, sizeof(query), "INSERT INTO vipUsers (authId, expireStamp) VALUES ('%s', '%s')", GetAuthId(client), Stamp);
 			g_LeftDays[client] = days;
 			RegClientPerks(client);
 		}
@@ -313,12 +333,13 @@ public void SQL_PrivateCode(Database db, DBResultSet results, const char [] erro
 		} else {
 			VIP_SetClientState(client, VIPState_IsVIP);
 		}
-		FormatEx(query, sizeof(query), "DELETE FROM vipPrivateCode WHERE authId='%s'", GetAuthId(client));
+		Format(query, sizeof(query), "DELETE FROM vipPrivateCode WHERE authId='%s'", GetAuthId(client));
 		g_Database.Query(SQL_CheckForErrors, query);
 	}
 }
 
-public void SQL_CheckYearVIP(Database db, DBResultSet results, const char [] error, int client){
+public void SQL_CheckYearVIP(Database db, DBResultSet results, const char [] error, int userid){
+	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
 		int result = results.FetchInt(0);
 		if (result == 1){
@@ -357,9 +378,9 @@ public void SQL_VIPKEY(Database db, DBResultSet results, const char [] error, Ar
 			Format(NewStamp, sizeof(NewStamp), "%i", GetTime() + ((days+g_LeftDays[client]) * 86400));
 			char query[256];
 			if (VIP_IsVIP(client)){
-				FormatEx(query, sizeof(query), "UPDATE vipUsers SET expireStamp='%s' WHERE authId='%s'", NewStamp, GetAuthId(client));
+				Format(query, sizeof(query), "UPDATE vipUsers SET expireStamp='%s' WHERE authId='%s'", NewStamp, GetAuthId(client));
 			} else {
-				FormatEx(query, sizeof(query), "INSERT INTO vipUsers (authId, expireStamp) VALUES ('%s', '%s')", GetAuthId(client), Stamp);
+				Format(query, sizeof(query), "INSERT INTO vipUsers (authId, expireStamp) VALUES ('%s', '%s')", GetAuthId(client), Stamp);
 				RegClientPerks(client);
 			}
 			g_Database.Query(SQL_CheckForErrors, query);
@@ -386,7 +407,7 @@ public void SQL_VIPKEY(Database db, DBResultSet results, const char [] error, Ar
 
 void RegClientPerks(int client){
 	char query[256];
-	FormatEx(query, sizeof(query), "INSERT INTO vipPerks (authId) VALUES ('%s')", GetAuthId(client));
+	Format(query, sizeof(query), "INSERT INTO vipPerks (authId) VALUES ('%s')", GetAuthId(client));
 	g_Database.Query(SQL_CheckForErrors, query);
 }
 
@@ -398,25 +419,34 @@ public int Handler_Main(Menu menu, MenuAction action, int client, int select){
 			case 2:ChatTagColorChange(client);
 			case 3:NameColorChange(client);
 			case 4:JoinMessageChange(client);
+			case 5:{
+				if (g_VIPClanTag[client]){
+					g_VIPClanTag[client] = false;
+					VIP_Message(client, "你已关闭VIP组名显示");
+				} else {
+					g_VIPClanTag[client] = true;
+					VIP_Message(client, "你已开启VIP组名显示");
+				}
+			}
 		}
 	}
 }
 
 public int Handler_ChatTagMain(Menu menu, MenuAction action, int client, int select){
 	if (action == MenuAction_Select){
-		menu.GetItem(select, g_Color[client][Color_ChatTag], sizeof(g_Color));
+		menu.GetItem(select, g_Color[client].Color_ChatTag, sizeof(g_Color));
 	}
 }
 
 public int Handler_ChatMain(Menu menu, MenuAction action, int client, int select){
 	if (action == MenuAction_Select){
-		menu.GetItem(select, g_Color[client][Color_Chat], sizeof(g_Color));
+		menu.GetItem(select, g_Color[client].Color_Chat, sizeof(g_Color));
 	}
 }
 
 public int Handler_NameMain(Menu menu, MenuAction action, int client, int select){
 	if (action == MenuAction_Select){
-		menu.GetItem(select, g_Color[client][Color_Name], sizeof(g_Color));
+		menu.GetItem(select, g_Color[client].Color_Name, sizeof(g_Color));
 	}
 }
 
@@ -504,6 +534,7 @@ void Menus_Main(int client)
 	menu.AddItem("chat tag color", "更改聊天前缀颜色", gc_ChatTagColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
 	menu.AddItem("name color", "更改名字颜色", gc_NameColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
 	menu.AddItem("join msg", "更改进服提示", gc_JoinMsg.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
+	menu.AddItem("clantag", "开关VIP组名", gc_VIPClanTag.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
 	menu.ExitButton = true;
 	menu.Display(client, MENU_TIME_FOREVER);
 }
@@ -561,22 +592,25 @@ stock void ShowVIPInfo(int client){
 	char auth[64];
 	Format(auth, sizeof(auth), GetAuthId(client));
 	char query[256];
+	int userid = GetClientUserId(client);
 	Format(query, sizeof(query), "SELECT chatTag FROM vipPerks WHERE authId='%s'", auth);
-	g_Database.Query(SQL_GetChatTag, query, client);
+	g_Database.Query(SQL_GetChatTag, query, userid);
 	Format(query, sizeof(query), "SELECT JoinMsg FROM vipPerks WHERE authId='%s'", auth);
-	g_Database.Query(SQL_GetJoinMsg, query, client);
+	g_Database.Query(SQL_GetJoinMsg, query, userid);
 	Format(query, sizeof(query), "SELECT tagColor FROM vipPerks WHERE authId='%s'", auth);
-	g_Database.Query(SQL_GetTagColor, query, client);
+	g_Database.Query(SQL_GetTagColor, query, userid);
 	Format(query, sizeof(query), "SELECT nameColor FROM vipPerks WHERE authId='%s'", auth);
-	g_Database.Query(SQL_GetNameColor, query, client);
+	g_Database.Query(SQL_GetNameColor, query, userid);
 	Format(query, sizeof(query), "SELECT chatColor FROM vipPerks WHERE authId='%s'", auth);
-	g_Database.Query(SQL_GetChatColor, query, client);
+	g_Database.Query(SQL_GetChatColor, query, userid);
 	Format(query, sizeof(query), "SELECT year FROM vipUsers WHERE authId='%s'", auth);
-	g_Database.Query(SQL_CheckYearVIP, query, client);
+	g_Database.Query(SQL_CheckYearVIP, query, userid);
+	Format(query, sizeof(query), "SELECT clanTag FROM vipPerks WHERE authId='%s'", auth);
+	g_Database.Query(SQL_CheckClanTag, query, userid);
 	SetHudTextParams(-1.0, 0.1, 7.0, 0, 255, 150, 255, 2, 6.0, 0.1, 0.2);
 	for (int i = 0; i < MaxClients; i++){
 		if (IsPlayer(i)){
-			ShowHudText(i, 0, "VIP %N 正在连接服务器...\n%s", client, g_VIP[client][JoinMsg]);
+			ShowHudText(i, 0, "VIP %N 正在连接服务器...\n%s", client, g_VIP[client].JoinMsg);
 		}
 	}
 }

@@ -26,7 +26,7 @@ public void OnPluginStart(){
 
 public void VIP_OnClientPutInServer(int client, VIPState State)
 {
-	if (State == VIPState_NoVIP && IsPlayer(client))
+	if (IsPlayer(client) && State == VIPState_NoVIP)
 	{
 		CheckTime(client);
 	}
@@ -52,6 +52,7 @@ public int HttpResponseCallback(bool success, const char[] error, System2HTTPReq
 
 	if (!success || response.StatusCode != 200 || !IsPlayer(client))
 	{
+		LogError("Request Error, Code:%i", response.StatusCode);
 		return;
 	}
 
