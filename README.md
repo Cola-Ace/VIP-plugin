@@ -1,3 +1,36 @@
+# 使用说明
+**在使用前请先配置名为 vip 的数据库，需导入sql文件**
+
+指令：!vip 打开vip总菜单
+
+# 插件说明
+
+- vip.smx
+  - 主插件
+
+- vip_autoupdate.smx
+  - 自动更新
+- vip_damageprint.smx
+  - 显示自己攻击的敌人受到的伤害
+- vip_disablecommand.smx
+  - 禁用指令，仅VIP可使用
+  - 需配置addons/sourcemod/configs/vip_command.cfg
+- vip_disablesticker.smx
+  - 玩家不是VIP时移除武器上所有的贴纸
+  - 需要前置插件eItems，csgo_weaponstickers
+- vip_flag.smx
+  - 自动向管理员添加年VIP
+- vip_levelicon.smx
+  - 更改VIP的等级图标
+- vip_logs.smx
+  - 记录日志（兑换卡密，玩家VIP状态改变）
+- vip_onlyvip.smx
+  - 仅VIP可进入服务器
+- vip_profilelimiter.smx
+  - 时长限制
+  - VIP可无视时长限制
+  - 需要配置Steam API Key
+
 # API
 - <kbd>forward void</kbd> VIP_OnKeyExchange
     - 说明：当玩家兑换VIP卡密成功时调用
@@ -37,6 +70,11 @@
     - 说明：获取玩家的VIP状态
     - <kbd>client</kbd> client index.
 # 更新日志
+
+- 2021-2-20 16:44
+  - 修复进服提示显示错误的bug
+  - 估计是六月份前最后一次更新（除重大BUG以外暂时停止更新）
+
 - 2021-2-15 0:10
     - 本次更新有更改数据库的表，如需导入sql文件请先备份数据，数据丢失概不负责
     - 新增vip_logs插件，可记录操作日志（兑换卡密，玩家VIP状态改变）
@@ -79,6 +117,5 @@
     - 新增api
     - 修复了玩家不是vip但仍然会显示进服提示的bug
 # 即将完成
-- VIP专属等级图标自定义
-- VIP时长限制更改
+
 - 计划移除chat-processor插件

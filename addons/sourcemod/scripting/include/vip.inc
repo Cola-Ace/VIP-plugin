@@ -3,10 +3,13 @@
 #endif
 #define _vip_included
 
-#define PLUGIN_VERSION "1.7.6"
+#define PLUGIN_VERSION "1.7.7"
 
 /*
 	Update Log:
+	- 1.7.7:
+	- Fixed Join Message.
+	- 1.7.6:
 	- Change enum base array to enum struct.
 	- Fixed Only VIP Plugin.
 	- Fixed Profile Limiter Plugin.

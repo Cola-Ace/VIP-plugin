@@ -152,6 +152,12 @@ public void SQL_GetJoinMsg(Database db, DBResultSet results, const char [] error
 	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
 		results.FetchString(0, g_VIP[client].JoinMsg, sizeof(g_VIP));
+		SetHudTextParams(-1.0, 0.1, 7.0, 0, 255, 150, 255, 2, 6.0, 0.1, 0.2);
+		for (int i = 0; i < MaxClients; i++){
+			if (IsPlayer(i)){
+				ShowHudText(i, 0, "VIP %N 正在连接服务器...\n%s", client, g_VIP[client].JoinMsg);
+			}
+		}
 	}
 }
 
@@ -607,10 +613,5 @@ stock void ShowVIPInfo(int client){
 	g_Database.Query(SQL_CheckYearVIP, query, userid);
 	Format(query, sizeof(query), "SELECT clanTag FROM vipPerks WHERE authId='%s'", auth);
 	g_Database.Query(SQL_CheckClanTag, query, userid);
-	SetHudTextParams(-1.0, 0.1, 7.0, 0, 255, 150, 255, 2, 6.0, 0.1, 0.2);
-	for (int i = 0; i < MaxClients; i++){
-		if (IsPlayer(i)){
-			ShowHudText(i, 0, "VIP %N 正在连接服务器...\n%s", client, g_VIP[client].JoinMsg);
-		}
-	}
+	
 }
