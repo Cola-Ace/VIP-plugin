@@ -4,7 +4,6 @@
 #include <chat-processor>
 #include <vip>
 #include <restorecvars>
-#include <sdkhooks>
 
 enum struct Color {
 	char Color_ChatTag[64];
@@ -46,6 +45,7 @@ VIPType g_VIP[MAXPLAYERS + 1];
 VIPState g_State[MAXPLAYERS + 1] = VIPState_NoVIP;
 
 #include "vip/natives.sp"
+#include "vip/menus.sp"
 
 public Plugin myinfo = {
 	name = "VIP System - Main",
@@ -86,12 +86,6 @@ public void OnPluginStart(){
 	g_hOnClientStateChanged = CreateGlobalForward("VIP_OnClientStateChanged", ET_Ignore, Param_Cell, Param_Cell, Param_Cell);
 }
 
-public void VIP_OnClientStateChanged(int client, VIPState Before_State, VIPState After_State){
-	if (Before_State == VIPState_NoVIP){
-		RegClientPerks(client);
-	}
-}
-
 public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcast){
 	int client = GetClientOfUserId(GetEventInt(event, "userid"));
 	if (VIP_IsVIP(client) && gc_VIPClanTag.BoolValue && g_VIPClanTag[client]){
@@ -106,7 +100,6 @@ public Action Hook_PlayerSpawn(Event event, const char[] name, bool dontBroadcas
 public void OnClientPostAdminCheck(int client)
 {
 	if (IsPlayer(client)){
-		LogMessage("Client Post Admin Check");
 		char query[256];
 		Format(query, sizeof(query), "SELECT * FROM vipUsers WHERE authId='%s'", GetAuthId(client));
 		g_Database.Query(SQL_CheckVIP, query, client);
@@ -220,7 +213,6 @@ public void SQL_CheckVIP(Database db, DBResultSet results, const char[] error, i
 		int Stamp = results.FetchInt(1);
 		int NowStamp = GetTime();
 		if (Stamp < NowStamp){
-			LogMessage("Del Client VIP");
 			char query[256];
 			Format(query, sizeof(query), "DELETE FROM vipUsers WHERE authId='%s'", GetAuthId(client))
 			g_Database.Query(SQL_CheckForErrors, query);
@@ -298,6 +290,7 @@ public Action Command_VIP(int client, int args)
 {
 	char key[256];
 	GetCmdArg(1, key, sizeof(key));
+	TrimString(key);
 	if (StrEqual(key, "") == false){
 		VIPKEY(client, key);
 		return Plugin_Stop;
@@ -438,111 +431,16 @@ public int Handler_Main(Menu menu, MenuAction action, int client, int select){
 	}
 }
 
-public int Handler_ChatTagMain(Menu menu, MenuAction action, int client, int select){
-	if (action == MenuAction_Select){
-		menu.GetItem(select, g_Color[client].Color_ChatTag, sizeof(g_Color));
-	}
-}
-
-public int Handler_ChatMain(Menu menu, MenuAction action, int client, int select){
-	if (action == MenuAction_Select){
-		menu.GetItem(select, g_Color[client].Color_Chat, sizeof(g_Color));
-	}
-}
-
-public int Handler_NameMain(Menu menu, MenuAction action, int client, int select){
-	if (action == MenuAction_Select){
-		menu.GetItem(select, g_Color[client].Color_Name, sizeof(g_Color));
-	}
-}
-
 void ChatTagChange(int client){
 	g_Change[client] = true;
 	g_ChatTag[client] = true;
 	VIP_Message(client, "请输入你想要更改的聊天前缀 输入 {DARK_RED}-1{NORMAL} 取消，输入 {DARK_RED}null{NORMAL} 为空");
 }
 
-void ChatTagColorChange(int client){
-	Menu menu = new Menu(Handler_ChatTagMain);
-	menu.SetTitle("选择聊天前缀颜色");
-	menu.AddItem("{normal}", "默认");
-	menu.AddItem("{dark_red}", "红色");
-	menu.AddItem("{pink}", "粉色");
-	menu.AddItem("{green}", "绿色");
-	menu.AddItem("{yellow}", "黄色");
-	menu.AddItem("{light_green}", "亮绿色");
-	menu.AddItem("{light_red}", "亮红色");
-	menu.AddItem("{grey}", "灰色");
-	menu.AddItem("{orange}", "橙色");
-	menu.AddItem("{light_blue}", "亮蓝色");
-	menu.AddItem("{dark_blue}", "深蓝色");
-	menu.AddItem("{purple}", "紫色");
-	menu.AddItem("rgb", "RGB");
-	menu.ExitButton = true;
-	menu.ExitBackButton = false;
-	menu.Display(client, MENU_TIME_FOREVER);
-}
-
-void ChatColorChange(int client){
-	Menu menu = new Menu(Handler_ChatMain);
-	menu.SetTitle("选择聊天颜色");
-	menu.AddItem("{normal}", "默认");
-	menu.AddItem("{dark_red}", "红色");
-	menu.AddItem("{pink}", "粉色");
-	menu.AddItem("{green}", "绿色");
-	menu.AddItem("{yellow}", "黄色");
-	menu.AddItem("{light_green}", "亮绿色");
-	menu.AddItem("{light_red}", "亮红色");
-	menu.AddItem("{grey}", "灰色");
-	menu.AddItem("{orange}", "橙色");
-	menu.AddItem("{light_blue}", "亮蓝色");
-	menu.AddItem("{dark_blue}", "深蓝色");
-	menu.AddItem("{purple}", "紫色");
-	menu.AddItem("rgb", "RGB");
-	menu.ExitButton = true;
-	menu.ExitBackButton = false;
-	menu.Display(client, MENU_TIME_FOREVER);
-}
-
-void NameColorChange(int client){
-	Menu menu = new Menu(Handler_NameMain);
-	menu.SetTitle("选择名字颜色");
-	menu.AddItem("{normal}", "默认");
-	menu.AddItem("{dark_red}", "红色");
-	menu.AddItem("{pink}", "粉色");
-	menu.AddItem("{green}", "绿色");
-	menu.AddItem("{yellow}", "黄色");
-	menu.AddItem("{light_green}", "亮绿色");
-	menu.AddItem("{light_red}", "亮红色");
-	menu.AddItem("{grey}", "灰色");
-	menu.AddItem("{orange}", "橙色");
-	menu.AddItem("{light_blue}", "亮蓝色");
-	menu.AddItem("{dark_blue}", "深蓝色");
-	menu.AddItem("{purple}", "紫色");
-	menu.AddItem("rgb", "RGB");
-	menu.ExitButton = true;
-	menu.ExitBackButton = false;
-	menu.Display(client, MENU_TIME_FOREVER);
-}
-
 void JoinMessageChange(int client){
 	g_Change[client] = true;
 	g_JoinMsg[client] = true;
 	VIP_Message(client, "请输入你想要更改的进服提示 输入 {DARK_RED}-1{NORMAL} 取消，输入 {DARK_RED}null{NORMAL} 为空");
-}
-
-void Menus_Main(int client)
-{
-	Menu menu = new Menu(Handler_Main);
-	menu.SetTitle("[VIP] 主菜单\n距离过期还有 %i 天", g_LeftDays[client]);
-	menu.AddItem("chat tag", "更改聊天前缀", gc_ChatTag.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	menu.AddItem("chat color", "更改聊天颜色", gc_ChatColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	menu.AddItem("chat tag color", "更改聊天前缀颜色", gc_ChatTagColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	menu.AddItem("name color", "更改名字颜色", gc_NameColor.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	menu.AddItem("join msg", "更改进服提示", gc_JoinMsg.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	menu.AddItem("clantag", "开关VIP组名", gc_VIPClanTag.BoolValue ? ITEMDRAW_DEFAULT:ITEMDRAW_DISABLED);
-	menu.ExitButton = true;
-	menu.Display(client, MENU_TIME_FOREVER);
 }
 
 public void SQL_CheckForErrors(Database db, DBResultSet results, const char[] error, any data)
@@ -596,7 +494,7 @@ stock void RGB(const char[] source, char[] buffer, int size)
 
 stock void ShowVIPInfo(int client){
 	char auth[64];
-	Format(auth, sizeof(auth), GetAuthId(client));
+	GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
 	char query[256];
 	int userid = GetClientUserId(client);
 	Format(query, sizeof(query), "SELECT chatTag FROM vipPerks WHERE authId='%s'", auth);
@@ -613,5 +511,4 @@ stock void ShowVIPInfo(int client){
 	g_Database.Query(SQL_CheckYearVIP, query, userid);
 	Format(query, sizeof(query), "SELECT clanTag FROM vipPerks WHERE authId='%s'", auth);
 	g_Database.Query(SQL_CheckClanTag, query, userid);
-	
 }
