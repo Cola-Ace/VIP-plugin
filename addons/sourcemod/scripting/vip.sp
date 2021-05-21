@@ -111,23 +111,25 @@ public void OnClientDisconnect(int client)
 	if (VIP_IsVIP(client)){
 		char auth[64];
 		Format(auth, sizeof(auth), GetAuthId(client));
-		char query[256];
+		char query[256], temp[256];
 		Format(query, sizeof(query), "UPDATE vipPerks SET chatTag='%s' WHERE authId='%s'", g_VIP[client].ChatTag, auth);
-		g_Database.Query(SQL_CheckForErrors, query);
+		g_Database.Escape(query, temp, sizeof(temp));
+		g_Database.Query(SQL_CheckForErrors, temp);
 		Format(query, sizeof(query), "UPDATE vipPerks SET joinMsg='%s' WHERE authId='%s'", g_VIP[client].JoinMsg, auth);
-		g_Database.Query(SQL_CheckForErrors, query);
+		g_Database.Escape(query, temp, sizeof(temp));
+		g_Database.Query(SQL_CheckForErrors, temp);
 		Format(query, sizeof(query), "UPDATE vipPerks SET tagColor='%s' WHERE authId='%s'", g_Color[client].Color_ChatTag, auth)
-		g_Database.Query(SQL_CheckForErrors, query);
+		g_Database.Escape(query, temp, sizeof(temp));
+		g_Database.Query(SQL_CheckForErrors, temp);
 		Format(query, sizeof(query), "UPDATE vipPerks SET nameColor='%s' WHERE authId='%s'", g_Color[client].Color_Name, auth)
-		g_Database.Query(SQL_CheckForErrors, query);
+		g_Database.Escape(query, temp, sizeof(temp));
+		g_Database.Query(SQL_CheckForErrors, temp);
 		Format(query, sizeof(query), "UPDATE vipPerks SET chatColor='%s' WHERE authId='%s'", g_Color[client].Color_Chat, auth)
-		g_Database.Query(SQL_CheckForErrors, query);
+		g_Database.Escape(query, temp, sizeof(temp));
+		g_Database.Query(SQL_CheckForErrors, temp);
 		Format(query, sizeof(query), "UPDATE vipPerks SET clanTag='%s' WHERE authId='%s'", view_as<int>(g_VIPClanTag[client]), auth);
-		g_Database.Query(SQL_CheckForErrors, query);
-		int isyear = 0;
-		if (VIP_GetClientState(client) == VIPState_IsYearVIP)isyear = 1;
-		Format(query, sizeof(query), "UPDATE vipUsers SET year='%i' WHERE authId='%s'", isyear, auth);
-		g_Database.Query(SQL_CheckForErrors, query);
+		g_Database.Escape(query, temp, sizeof(temp));
+		g_Database.Query(SQL_CheckForErrors, temp);
 	}
 	g_State[client] = VIPState_NoVIP;
 	g_Change[client] = false;
@@ -179,6 +181,26 @@ public void SQL_CheckClanTag(Database db, DBResultSet results, const char [] err
 	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
 		g_VIPClanTag[client] = view_as<bool>(results.FetchInt(0));
+	}
+}
+
+public void SQL_CheckYear(Database db, DBResultSet results, const char[] error, int userid){
+	int client = GetClientOfUserId(userid);
+	if (results.FetchRow()){
+		int stamp = results.FetchInt(0);
+		if (GetTime() > stamp){
+			char query[256], auth[64];
+			GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
+			Format(query, sizeof(query), "UPDATE vipUsers SET year_time = '' WHERE authId='%s'", auth);
+			g_Database.Query(SQL_CheckForErrors, query);
+			VIP_SetClientState(client, VIPState_IsVIP);
+		} else {
+			VIP_SetClientState(client, VIPState_IsYearVIP);
+		}
+		Call_StartForward(g_hOnClientPutInServer);
+		Call_PushCell(client)
+		Call_PushCell(g_State[client]);
+		Call_Finish();
 	}
 }
 
@@ -329,6 +351,10 @@ public void SQL_PrivateCode(Database db, DBResultSet results, const char [] erro
 		if (days >= 365){
 			VIP_Message(client, "成功开通年费VIP服务");
 			VIP_SetClientState(client, VIPState_IsYearVIP);
+			char yearStamp[16];
+			Format(yearStamp, sizeof(yearStamp), "%i", GetTime() + (days * 24 * 60 * 60));
+			Format(query, sizeof(query), "UPDATE vipUsers SET year_time='%s' WHERE authId='%s'", yearStamp, GetAuthId(client));
+			g_Database.Query(SQL_CheckForErrors, query);
 		} else {
 			VIP_SetClientState(client, VIPState_IsVIP);
 		}
@@ -337,30 +363,15 @@ public void SQL_PrivateCode(Database db, DBResultSet results, const char [] erro
 	}
 }
 
-public void SQL_CheckYearVIP(Database db, DBResultSet results, const char [] error, int userid){
-	int client = GetClientOfUserId(userid);
-	if (results.FetchRow()){
-		int result = results.FetchInt(0);
-		if (result == 1){
-			VIP_SetClientState(client, VIPState_IsYearVIP);
-		} else {
-			VIP_SetClientState(client, VIPState_IsVIP);
-		}
-		Call_StartForward(g_hOnClientPutInServer);
-		Call_PushCell(client)
-		Call_PushCell(g_State[client]);
-		Call_Finish();
-	}
-}
-
 void VIPKEY(int client, const char [] key)
 {
-	char query[256];
+	char query[256], temp[256];
 	Format(query, sizeof(query), "SELECT DAYS FROM vipCode WHERE VIPKEY='%s'", key);
 	ArrayList g_ArrayList = new ArrayList(64);
 	g_ArrayList.Push(client);
 	g_ArrayList.PushString(key);
-	g_Database.Query(SQL_VIPKEY, query, g_ArrayList)
+	g_Database.Escape(query, temp, sizeof(temp));
+	g_Database.Query(SQL_VIPKEY, temp, g_ArrayList)
 }
 
 public void SQL_VIPKEY(Database db, DBResultSet results, const char [] error, ArrayList g_ArrayList)
@@ -387,6 +398,10 @@ public void SQL_VIPKEY(Database db, DBResultSet results, const char [] error, Ar
 			if (days >= 365){
 				VIP_Message(client, "成功开通年费VIP服务");
 				VIP_SetClientState(client, VIPState_IsYearVIP);
+				char yearStamp[16];
+				Format(yearStamp, sizeof(yearStamp), "%i", GetTime() + (days * 24 * 60 * 60));
+				Format(query, sizeof(query), "UPDATE vipUsers SET year_time='%s' WHERE authId='%s'", yearStamp, GetAuthId(client));
+				g_Database.Query(SQL_CheckForErrors, query);
 			} else {
 				VIP_SetClientState(client, VIPState_IsVIP);
 			}
@@ -507,8 +522,8 @@ stock void ShowVIPInfo(int client){
 	g_Database.Query(SQL_GetNameColor, query, userid);
 	Format(query, sizeof(query), "SELECT chatColor FROM vipPerks WHERE authId='%s'", auth);
 	g_Database.Query(SQL_GetChatColor, query, userid);
-	Format(query, sizeof(query), "SELECT year FROM vipUsers WHERE authId='%s'", auth);
-	g_Database.Query(SQL_CheckYearVIP, query, userid);
 	Format(query, sizeof(query), "SELECT clanTag FROM vipPerks WHERE authId='%s'", auth);
 	g_Database.Query(SQL_CheckClanTag, query, userid);
+	Format(query, sizeof(query), "SELECT year_time FROM vipUsers WHERE authId='%s'", auth);
+	g_Database.Query(SQL_CheckYear, query, userid);
 }

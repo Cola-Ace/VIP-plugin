@@ -3,10 +3,16 @@
 #endif
 #define _vip_included
 
-#define PLUGIN_VERSION "1.7.7"
+#define PLUGIN_VERSION "1.7.9.1"
 
 /*
 	Update Log:
+	- 1.7.9.1:
+	- Enhanced security to prevent sql injection
+	- 1.7.9:
+	- Fixed Database Error (Duplicate entry '' for key 'PRIMARY')
+	- 1.7.8:
+	- Fixed if key has space will show invalid key(just add TrimString when check key).
 	- 1.7.7:
 	- Fixed Join Message.
 	- 1.7.6:
