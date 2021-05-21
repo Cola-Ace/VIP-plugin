@@ -71,9 +71,6 @@
     - <kbd>client</kbd> client index.
 # 更新日志
 
-- 2021-5-21 21:44
-  - 增加安全性，防止用户执行SQL注入
-
 - 2021-4-5 12:56
   - 修复Duplicate entry ' ' for key 'PRIMARY'的报错
 

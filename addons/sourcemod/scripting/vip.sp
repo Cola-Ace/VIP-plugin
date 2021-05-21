@@ -111,25 +111,19 @@ public void OnClientDisconnect(int client)
 	if (VIP_IsVIP(client)){
 		char auth[64];
 		Format(auth, sizeof(auth), GetAuthId(client));
-		char query[256], temp[256];
+		char query[256];
 		Format(query, sizeof(query), "UPDATE vipPerks SET chatTag='%s' WHERE authId='%s'", g_VIP[client].ChatTag, auth);
-		g_Database.Escape(query, temp, sizeof(temp));
-		g_Database.Query(SQL_CheckForErrors, temp);
+		g_Database.Query(SQL_CheckForErrors, query);
 		Format(query, sizeof(query), "UPDATE vipPerks SET joinMsg='%s' WHERE authId='%s'", g_VIP[client].JoinMsg, auth);
-		g_Database.Escape(query, temp, sizeof(temp));
-		g_Database.Query(SQL_CheckForErrors, temp);
+		g_Database.Query(SQL_CheckForErrors, query);
 		Format(query, sizeof(query), "UPDATE vipPerks SET tagColor='%s' WHERE authId='%s'", g_Color[client].Color_ChatTag, auth)
-		g_Database.Escape(query, temp, sizeof(temp));
-		g_Database.Query(SQL_CheckForErrors, temp);
+		g_Database.Query(SQL_CheckForErrors, query);
 		Format(query, sizeof(query), "UPDATE vipPerks SET nameColor='%s' WHERE authId='%s'", g_Color[client].Color_Name, auth)
-		g_Database.Escape(query, temp, sizeof(temp));
-		g_Database.Query(SQL_CheckForErrors, temp);
+		g_Database.Query(SQL_CheckForErrors, query);
 		Format(query, sizeof(query), "UPDATE vipPerks SET chatColor='%s' WHERE authId='%s'", g_Color[client].Color_Chat, auth)
-		g_Database.Escape(query, temp, sizeof(temp));
-		g_Database.Query(SQL_CheckForErrors, temp);
+		g_Database.Query(SQL_CheckForErrors, query);
 		Format(query, sizeof(query), "UPDATE vipPerks SET clanTag='%s' WHERE authId='%s'", view_as<int>(g_VIPClanTag[client]), auth);
-		g_Database.Escape(query, temp, sizeof(temp));
-		g_Database.Query(SQL_CheckForErrors, temp);
+		g_Database.Query(SQL_CheckForErrors, query);
 	}
 	g_State[client] = VIPState_NoVIP;
 	g_Change[client] = false;
@@ -365,13 +359,12 @@ public void SQL_PrivateCode(Database db, DBResultSet results, const char [] erro
 
 void VIPKEY(int client, const char [] key)
 {
-	char query[256], temp[256];
+	char query[256];
 	Format(query, sizeof(query), "SELECT DAYS FROM vipCode WHERE VIPKEY='%s'", key);
 	ArrayList g_ArrayList = new ArrayList(64);
 	g_ArrayList.Push(client);
 	g_ArrayList.PushString(key);
-	g_Database.Escape(query, temp, sizeof(temp));
-	g_Database.Query(SQL_VIPKEY, temp, g_ArrayList)
+	g_Database.Query(SQL_VIPKEY, query, g_ArrayList)
 }
 
 public void SQL_VIPKEY(Database db, DBResultSet results, const char [] error, ArrayList g_ArrayList)

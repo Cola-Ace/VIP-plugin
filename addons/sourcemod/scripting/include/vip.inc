@@ -3,12 +3,10 @@
 #endif
 #define _vip_included
 
-#define PLUGIN_VERSION "1.7.9.1"
+#define PLUGIN_VERSION "1.7.9"
 
 /*
 	Update Log:
-	- 1.7.9.1:
-	- Enhanced security to prevent sql injection
 	- 1.7.9:
 	- Fixed Database Error (Duplicate entry '' for key 'PRIMARY')
 	- 1.7.8:
