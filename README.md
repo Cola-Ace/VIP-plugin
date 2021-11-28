@@ -24,7 +24,7 @@
 - vip_levelicon.smx
   - 更改VIP的等级图标
 - vip_logs.smx
-  - 记录日志（兑换卡密，玩家VIP状态改变）
+  - 记录日志（兑换卡密）
 - vip_onlyvip.smx
   - 仅VIP可进入服务器
 - vip_profilelimiter.smx
