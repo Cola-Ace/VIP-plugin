@@ -29,10 +29,8 @@ public void OnPluginStart(){
 public void VIP_OnKeyExchange(int client, const char[] key, int days){
 	char query[512];
 	char auth[64];
-	char msg[256];
 	GetClientAuthId(client, AuthId_Steam2, auth, sizeof(auth));
-	Format(msg, sizeof(msg), "使用卡密:%s | 天数:%i", key, days);
-	Format(query, sizeof(query), "INSERT INTO vipLogs (authId, name, ip, timeStamp, action) VALUES ('%s', '%N', '%s', '%i', '%s')", auth, client, ThisServerIP, GetTime(), msg);
+	Format(query, sizeof(query), "INSERT INTO vipLogs (authId, name, ip, timeStamp, key, days) VALUES ('%s', '%N', '%s', '%i', '%s', '%i')", auth, client, ThisServerIP, GetTime(), key, days);
 	g_Database.Query(SQL_CheckForErrors, query);
 }
 
