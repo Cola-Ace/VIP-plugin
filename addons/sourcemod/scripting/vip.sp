@@ -179,8 +179,8 @@ public void SQL_CheckClanTag(Database db, DBResultSet results, const char [] err
 }
 
 public void SQL_CheckYear(Database db, DBResultSet results, const char[] error, int userid){
-	int client = GetClientOfUserId(userid);
 	if (results.FetchRow()){
+		int client = GetClientOfUserId(userid);
 		int stamp = results.FetchInt(0);
 		if (GetTime() > stamp){
 			char query[256], auth[64];
@@ -354,6 +354,7 @@ public void SQL_PrivateCode(Database db, DBResultSet results, const char [] erro
 		}
 		Format(query, sizeof(query), "DELETE FROM vipPrivateCode WHERE authId='%s'", GetAuthId(client));
 		g_Database.Query(SQL_CheckForErrors, query);
+		SetClientFlags(client);
 	}
 }
 
@@ -406,6 +407,7 @@ public void SQL_VIPKEY(Database db, DBResultSet results, const char [] error, Ar
 			Call_Finish();
 			Format(query, sizeof(query), "DELETE FROM vipCode WHERE VIPKEY='%s'", key);
 			g_Database.Query(SQL_CheckForErrors, query);
+			SetClientFlags(client);
 		}
 	} else {
 		VIP_Message(client, "卡密不存在");
@@ -517,6 +519,6 @@ stock void ShowVIPInfo(int client){
 	g_Database.Query(SQL_GetChatColor, query, userid);
 	Format(query, sizeof(query), "SELECT clanTag FROM vipPerks WHERE authId='%s'", auth);
 	g_Database.Query(SQL_CheckClanTag, query, userid);
-	Format(query, sizeof(query), "SELECT year_time FROM vipUsers WHERE authId='%s'", auth);
+	Format(query, sizeof(query), "SELECT year FROM vipUsers WHERE authId='%s'", auth);
 	g_Database.Query(SQL_CheckYear, query, userid);
 }

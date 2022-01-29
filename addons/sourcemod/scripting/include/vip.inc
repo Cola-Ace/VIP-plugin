@@ -3,10 +3,12 @@
 #endif
 #define _vip_included
 
-#define PLUGIN_VERSION "1.7.9"
+#define PLUGIN_VERSION "1.8"
 
 /*
 	Update Log:
+	- 1.8:
+	- Add new feature: client will get permissions when they got vip (config in configs/vip_flags.cfg);
 	- 1.7.9:
 	- Fixed Database Error (Duplicate entry '' for key 'PRIMARY')
 	- 1.7.8:

@@ -1,6 +1,5 @@
 # 使用说明
 **在使用前请先配置名为 vip 的数据库，需导入sql文件**
-**需要安装chat-processor插件**
 
 指令：!vip 打开vip总菜单
 
@@ -24,7 +23,7 @@
 - vip_levelicon.smx
   - 更改VIP的等级图标
 - vip_logs.smx
-  - 记录日志（兑换卡密）
+  - 记录日志（兑换卡密，玩家VIP状态改变）
 - vip_onlyvip.smx
   - 仅VIP可进入服务器
 - vip_profilelimiter.smx
@@ -72,13 +71,13 @@
     - <kbd>client</kbd> client index.
 # 更新日志
 
+- 2022-1-30 1:34
+  - 增加新功能：在configs/vip_flags.cfg里配置，玩家会在兑换VIP成功后获得对应的权限组
 - 2021-4-5 12:56
   - 修复Duplicate entry ' ' for key 'PRIMARY'的报错
-
 - 2021-2-20 16:44
   - 修复进服提示显示错误的bug
   - 估计是六月份前最后一次更新（除重大BUG以外暂时停止更新）
-
 - 2021-2-15 0:10
     - 本次更新有更改数据库的表，如需导入sql文件请先备份数据，数据丢失概不负责
     - 新增vip_logs插件，可记录操作日志（兑换卡密，玩家VIP状态改变）
