@@ -1,6 +1,12 @@
 #include <sourcemod>
 #include "include/vip.inc"
+#include "include/restorecvars.inc"
 #tryinclude "include/c5_pug.inc"
+
+#pragma semicolon 1
+#pragma newdecls required
+
+ConVar g_cMaxPlayers;
 
 public Plugin myinfo = {
 	name = "VIP System - Extrusion",
@@ -10,12 +16,18 @@ public Plugin myinfo = {
 	url = "https://github.com/Cola-Ace/VIP-Plugin"
 }
 
+public void OnPluginStart(){
+	g_cMaxPlayers = CreateConVar("sm_vip_extrusion_maxplayers", "10", "Max Players in Game");
+	AutoExecConfig(true, "vip_extrusion");
+	ExecuteAndSaveCvars("sourcemod/vip_extrusion.cfg");
+}
+
 public void VIP_OnClientPutInServer(int client, VIPState state){
 	bool c5_pug = false;
 	#if defined _c5_pug_included
 	c5_pug = true;
 	#endif
-	if (c5_pug ? C5_PUG_IsWarmup():true && state != VIPState_NoVIP && GetRealClientCount() >= 10){
+	if (c5_pug ? C5_PUG_IsWarmup():true && state != VIPState_NoVIP && GetRealClientCount() >= g_cMaxPlayers.IntValue){
 		RandomKick();
 	}
 }
