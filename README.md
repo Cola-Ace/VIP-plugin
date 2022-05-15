@@ -26,7 +26,7 @@
   - VIP可无视时长限制
   - 需要配置Steam API Key
 - vip_extrusion.smx
-  - VIP可挤出不是VIP且不是管理员的玩家
+  - VIP可挤出不是VIP且不是管理员的玩家（如果装了c5_pug仅热身可用）
 
 # API
 - <kbd>forward void</kbd> VIP_OnKeyExchange
