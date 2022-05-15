@@ -26,7 +26,7 @@
   - VIP可无视时长限制
   - 需要配置Steam API Key
 - vip_extrusion.smx
-  - VIP可挤出不是VIP且不是管理员的玩家（如果装了c5_pug仅热身能用）
+  - VIP可挤出不是VIP且不是管理员的玩家（可在cfg/sourcemod/vip_extrusion.cfg里配置最大玩家数）
 
 # API
 - <kbd>forward void</kbd> VIP_OnKeyExchange
@@ -68,7 +68,7 @@
     - <kbd>client</kbd> client index.
 # 更新日志
 
-- 2022-5-15 12:14
+- 2022-5-15 12:44
   - 增加新功能：VIP可挤人
 - 2022-1-30 1:34
   - 增加新功能：在configs/vip_flags.cfg里配置，玩家会在兑换VIP成功后获得对应的权限组
