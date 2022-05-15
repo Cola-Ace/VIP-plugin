@@ -27,8 +27,6 @@
   - 需要配置Steam API Key
 - vip_extrusion.smx
   - VIP可挤出不是VIP且不是管理员的玩家
-  - 需搭配c5_pug使用
-  - 仅热身会挤人
 
 # API
 - <kbd>forward void</kbd> VIP_OnKeyExchange
@@ -71,7 +69,7 @@
 # 更新日志
 
 - 2022-5-15 12:14
-  - 增加新功能：VIP可在热身时挤人（需搭配c5_pug使用）
+  - 增加新功能：VIP可挤人
 - 2022-1-30 1:34
   - 增加新功能：在configs/vip_flags.cfg里配置，玩家会在兑换VIP成功后获得对应的权限组
 - 2021-4-5 12:56
