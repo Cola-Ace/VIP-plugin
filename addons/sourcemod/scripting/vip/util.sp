@@ -39,6 +39,14 @@ stock int GetIndexFromString(const char[] str, const char[] find_str){
 	return -1;
 }
 
+stock int GetRealClientCount(){
+	int clients = 0;
+	for (int i = 0; i < MaxClients; i++){
+		if (IsPlayer(i)) clients++;
+	}
+	return clients;
+}
+
 stock AdminFlag GetFlagsFromName(const char[] name){
 	return _flagsCodes[GetIndexFromString("mjfbaedrlqpnhgiskoctz", name)];
 }
