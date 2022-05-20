@@ -27,6 +27,8 @@
   - 需要配置Steam API Key
 - vip_extrusion.smx
   - VIP可挤出不是VIP且不是管理员的玩家（可在cfg/sourcemod/vip_extrusion.cfg里配置最大玩家数）
+- vip_giveflag.smx
+  - VIP会获得对应的权限，退出服务器时会自动删除（管理员不受影响）
 
 # API
 - <kbd>forward void</kbd> VIP_OnKeyExchange
@@ -68,6 +70,9 @@
     - <kbd>client</kbd> client index.
 # 更新日志
 
+- 2022-5-20 21:06
+  - 增加新功能：VIP在进入游戏后可自动获得对应的权限
+  - 修复VIP挤人功能无法正常使用的bug
 - 2022-5-15 12:44
   - 增加新功能：VIP可挤人
 - 2022-1-30 1:34

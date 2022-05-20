@@ -23,11 +23,11 @@ public void OnPluginStart(){
 }
 
 public void VIP_OnClientPutInServer(int client, VIPState state){
-	bool c5_pug = false;
+	bool warmup = true;
 	#if defined _c5_pug_included
-	c5_pug = true;
+	warmup = C5_PUG_IsWarmup();
 	#endif
-	if (c5_pug ? C5_PUG_IsWarmup():true && state != VIPState_NoVIP && GetRealClientCount() >= g_cMaxPlayers.IntValue){
+	if (warmup && state != VIPState_NoVIP && GetRealClientCount() >= g_cMaxPlayers.IntValue){
 		RandomKick();
 	}
 }
