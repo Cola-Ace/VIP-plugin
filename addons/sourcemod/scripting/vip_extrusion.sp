@@ -1,7 +1,6 @@
 #include <sourcemod>
 #include "include/vip.inc"
 #include "include/restorecvars.inc"
-#tryinclude "include/c5_pug.inc"
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -23,11 +22,7 @@ public void OnPluginStart(){
 }
 
 public void VIP_OnClientPutInServer(int client, VIPState state){
-	bool warmup = true;
-	#if defined _c5_pug_included
-	warmup = C5_PUG_IsWarmup();
-	#endif
-	if (warmup && state != VIPState_NoVIP && GetRealClientCount() >= g_cMaxPlayers.IntValue){
+	if (state != VIPState_NoVIP && GetRealClientCount() >= g_cMaxPlayers.IntValue){
 		RandomKick();
 	}
 }
