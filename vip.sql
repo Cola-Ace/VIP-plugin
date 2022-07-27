@@ -59,6 +59,7 @@ CREATE TABLE `vipUsers`  (
   `authId` varchar(32) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '',
   `expireStamp` int(11) NOT NULL,
   `year` int(1) NOT NULL,
+  `year_time` int(11),
   PRIMARY KEY (`authId`) USING BTREE,
   UNIQUE INDEX `authId`(`authId`) USING BTREE
 ) ENGINE = InnoDB CHARACTER SET = utf8mb4 COLLATE = utf8mb4_general_ci ROW_FORMAT = COMPACT;
